@@ -1,4 +1,4 @@
-// Copyright 2020 Tobias Klauser
+// Copyright 2020 Isovalent, Inc
 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
