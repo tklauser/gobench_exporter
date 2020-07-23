@@ -15,7 +15,6 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"log"
 	"net/http"
@@ -63,21 +62,13 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		scanner := bufio.NewScanner(stdout)
-		for scanner.Scan() {
-			line := scanner.Text()
-			b, err := bench.ParseLine(line)
-			if err != nil {
-				// ignore any format error
-				continue
-			}
-			log.Print(b)
-			w.Write([]byte(fmt.Sprintf("%s\n", b)))
-		}
+		bs := bench.ParseSet(stdout)
+		log.Print(bs)
+		w.Write([]byte(fmt.Sprintf("%v\n", bs)))
 
 		if err := cmd.Wait(); err != nil {
+			log.Printf("Failed to wait for command to exit: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(fmt.Sprintf("Failed to wait for command to exit: %v", err)))
 			return
 		}
 	}

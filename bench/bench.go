@@ -15,7 +15,9 @@
 package bench
 
 import (
+	"bufio"
 	"fmt"
+	"io"
 	"strconv"
 	"strings"
 
@@ -81,6 +83,7 @@ func parseGoCheckLine(line string) (*parse.Benchmark, error) {
 
 // ParseLine extracts a parse.Benchmark from a single line of testing.B or check.C benchmark output.
 func ParseLine(line string) (*parse.Benchmark, error) {
+	line = strings.TrimSpace(line)
 	if strings.HasPrefix(line, "Benchmark") {
 		// Go standard library testing format
 		return parse.ParseLine(line)
@@ -88,4 +91,26 @@ func ParseLine(line string) (*parse.Benchmark, error) {
 		return parseGoCheckLine(line)
 	}
 	return nil, fmt.Errorf("not a valid benchmark line")
+}
+
+// ParseSet extracts a Set from testing.B or check.C benchmark output.
+// ParseSet preserves the order of benchmarks that have identical
+// names.
+func ParseSet(r io.Reader) (parse.Set, error) {
+	bb := make(parse.Set)
+	scan := bufio.NewScanner(r)
+	ord := 0
+	for scan.Scan() {
+		if b, err := ParseLine(scan.Text()); err == nil {
+			b.Ord = ord
+			ord++
+			bb[b.Name] = append(bb[b.Name], b)
+		}
+	}
+
+	if err := scan.Err(); err != nil {
+		return nil, err
+	}
+
+	return bb, nil
 }
