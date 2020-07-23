@@ -21,9 +21,11 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/version"
 	"github.com/tklauser/gobench_exporter/bench"
+	"github.com/tklauser/gobench_exporter/collector"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -31,12 +33,14 @@ import (
 // metrics
 
 type handler struct {
-	repoPath string
+	repoPath  string
+	collector *collector.GoBenchCollector
 }
 
-func newHandler(repoPath string) *handler {
+func newHandler(repoPath string, collector *collector.GoBenchCollector) *handler {
 	return &handler{
-		repoPath: repoPath,
+		repoPath:  repoPath,
+		collector: collector,
 	}
 }
 
@@ -103,7 +107,11 @@ func main() {
 	log.Printf("Starting gobench_exporter version %s", version.Info())
 	log.Printf("Benchmarking Go packages in directory %s", *repoPath)
 
-	h := newHandler(*repoPath)
+	c := collector.NewGoBenchCollector()
+	if err := prometheus.Register(c); err != nil {
+		log.Fatalf("Failed to register collector: %v", err)
+	}
+	h := newHandler(*repoPath, c)
 
 	http.Handle(*metricsPath, promhttp.Handler())
 	http.Handle(*triggerPath, h)

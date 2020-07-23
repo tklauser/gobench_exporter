@@ -14,4 +14,55 @@
 
 package collector
 
-//
+import (
+	"strings"
+
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/tklauser/gobench_exporter/bench"
+	"golang.org/x/tools/benchmark/parse"
+)
+
+// namespace is the common namespace to be used by all metrics.
+const namespace = "gobench"
+
+// GoBenchCollector implements the prometheus.GoBenchCollector interface.
+type GoBenchCollector struct {
+	benchmarks     parse.Set
+	benchmarksDesc *prometheus.Desc
+}
+
+// NewGoBenchCollector
+func NewGoBenchCollector() *GoBenchCollector {
+	// for now just return static benchmarks
+	in := `
+	BenchmarkSortSlice-8   	   16315	     68857 ns/op
+	PASS: main_test.go:48: MySuite.BenchmarkSortSlice	   20000	     81293 ns/op	      64 B/op	       2 allocs/op
+	`
+
+	c := &GoBenchCollector{}
+	b, err := bench.ParseSet(strings.NewReader(in))
+	if err == nil {
+		c.benchmarks = b
+		c.benchmarksDesc = prometheus.NewDesc(
+			prometheus.BuildFQName(namespace, "", "go_benchmarks"),
+			"The set of Go benchmarks",
+			[]string{"name"},
+			nil,
+		)
+	}
+	return c
+}
+
+// Describe implements prometheus.Collector interface.
+func (e *GoBenchCollector) Describe(ch chan<- *prometheus.Desc) {
+	ch <- e.benchmarksDesc
+}
+
+// Collect implements prometheus.Collector interface and sends all metrics.
+func (e *GoBenchCollector) Collect(ch chan<- prometheus.Metric) {
+	for _, bb := range e.benchmarks {
+		for _, b := range bb {
+			ch <- prometheus.MustNewConstMetric(e.benchmarksDesc, prometheus.GaugeValue, 1, b.Name)
+		}
+	}
+}
