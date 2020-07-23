@@ -62,9 +62,11 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		bs := bench.ParseSet(stdout)
-		log.Print(bs)
-		w.Write([]byte(fmt.Sprintf("%v\n", bs)))
+		bs, err := bench.ParseSet(stdout)
+		if err == nil {
+			log.Print(bs)
+			w.Write([]byte(fmt.Sprintf("%v\n", bs)))
+		}
 
 		if err := cmd.Wait(); err != nil {
 			log.Printf("Failed to wait for command to exit: %v", err)
