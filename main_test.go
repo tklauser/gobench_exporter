@@ -23,6 +23,7 @@ import (
 
 // BenchmarkSortSlice is an example benchmarking sort.Slice using the testing package.
 func BenchmarkSortSlice(b *testing.B) {
+	b.ReportAllocs()
 	data := make([]int, 1<<10)
 	b.ResetTimer() // ignore big allocation
 	for i := 0; i < b.N; i++ {
@@ -35,7 +36,7 @@ func BenchmarkSortSlice(b *testing.B) {
 		})
 		b.StopTimer()
 	}
-
+	b.SetBytes(int64(len(data)))
 }
 
 func Test(t *testing.T) { check.TestingT(t) }
@@ -58,4 +59,5 @@ func (s *MySuite) BenchmarkSortSlice(c *check.C) {
 		})
 		c.StopTimer()
 	}
+	c.SetBytes(int64(len(data)))
 }
