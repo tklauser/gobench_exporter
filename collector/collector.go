@@ -15,6 +15,7 @@
 package collector
 
 import (
+	"io"
 	"strings"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -47,15 +48,9 @@ func validPrometheusMetricName(r rune) rune {
 }
 
 // NewGoBenchCollector
-func NewGoBenchCollector() *GoBenchCollector {
-	// FIXME: for now just return static benchmarks
-	in := `
-	BenchmarkSortSlice-8   	   16315	     68857 ns/op
-	PASS: main_test.go:48: MySuite.BenchmarkSortSlice	   20000	     81293 ns/op	      64 B/op	       2 allocs/op
-	`
-
+func NewGoBenchCollector(r io.Reader) *GoBenchCollector {
 	c := &GoBenchCollector{}
-	bs, err := bench.ParseSet(strings.NewReader(in))
+	bs, err := bench.ParseSet(r)
 	if err == nil {
 		c.benchmarks = bs
 		c.benchmarkNamesDesc = prometheus.NewDesc(

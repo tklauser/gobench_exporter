@@ -107,7 +107,7 @@ func main() {
 	log.Printf("Starting gobench_exporter version %s", version.Info())
 	log.Printf("Benchmarking Go packages in directory %s", *repoPath)
 
-	c := collector.NewGoBenchCollector()
+	c := collector.NewGoBenchCollector(os.Stdin)
 	if err := prometheus.Register(c); err != nil {
 		log.Fatalf("Failed to register collector: %v", err)
 	}
