@@ -19,7 +19,6 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/tklauser/gobench_exporter/bench"
-	"golang.org/x/tools/benchmark/parse"
 )
 
 // namespace is the common namespace to be used by all metrics.
@@ -27,7 +26,7 @@ const namespace = "gobench"
 
 // GoBenchCollector implements the prometheus.GoBenchCollector interface.
 type GoBenchCollector struct {
-	benchmarks     parse.Set
+	benchmarks     bench.Set
 	benchmarksDesc *prometheus.Desc
 }
 

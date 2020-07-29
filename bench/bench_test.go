@@ -20,65 +20,64 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/tklauser/gobench_exporter/bench"
-	"golang.org/x/tools/benchmark/parse"
 )
 
 func TestParseLine(t *testing.T) {
 	benchs := []struct {
 		line    string
-		want    *parse.Benchmark
+		want    *bench.Benchmark
 		wantErr bool
 	}{
 		{
 			line: "BenchmarkSortSlice-8   	   17461	     69022 ns/op",
-			want: &parse.Benchmark{
+			want: &bench.Benchmark{
 				Name:     "BenchmarkSortSlice-8",
 				N:        17461,
 				NsPerOp:  69022,
-				Measured: parse.NsPerOp,
+				Measured: bench.NsPerOp,
 			},
 		},
 		{
 			line: "BenchmarkSortSlice-8   	   16572	     78922 ns/op	      64 B/op	       2 allocs/op",
-			want: &parse.Benchmark{
+			want: &bench.Benchmark{
 				Name:              "BenchmarkSortSlice-8",
 				N:                 16572,
 				NsPerOp:           78922.0,
 				AllocedBytesPerOp: 64,
 				AllocsPerOp:       2,
-				Measured:          parse.NsPerOp | parse.AllocedBytesPerOp | parse.AllocsPerOp,
+				Measured:          bench.NsPerOp | bench.AllocedBytesPerOp | bench.AllocsPerOp,
 			},
 		},
 		{
 			line: "PASS: main_test.go:49: MySuite.BenchmarkSortSlice	   20000	     89618 ns/op",
-			want: &parse.Benchmark{
+			want: &bench.Benchmark{
 				Name:     "MySuite.BenchmarkSortSlice",
 				N:        20000,
 				NsPerOp:  89618.0,
-				Measured: parse.NsPerOp,
+				Measured: bench.NsPerOp,
 			},
 		},
 		{
 			line: "PASS: main_test.go:49: MySuite.BenchmarkSortSlice	   20000	     90444 ns/op	 64 B/op	       2 allocs/op",
-			want: &parse.Benchmark{
+			want: &bench.Benchmark{
 				Name:              "MySuite.BenchmarkSortSlice",
 				N:                 20000,
 				NsPerOp:           90444.0,
 				AllocedBytesPerOp: 64,
 				AllocsPerOp:       2,
-				Measured:          parse.NsPerOp | parse.AllocedBytesPerOp | parse.AllocsPerOp,
+				Measured:          bench.NsPerOp | bench.AllocedBytesPerOp | bench.AllocsPerOp,
 			},
 		},
 		{
 			line: "PASS: main_test.go:1: MySuite.BenchmarkFoobar 90000",
-			want: &parse.Benchmark{
+			want: &bench.Benchmark{
 				Name: "MySuite.BenchmarkFoobar",
 				N:    90000,
 			},
 		},
 		{
 			line: "\t\tPASS: main_test.go:1: MySuite.BenchmarkFoobar 90000\n",
-			want: &parse.Benchmark{
+			want: &bench.Benchmark{
 				Name: "MySuite.BenchmarkFoobar",
 				N:    90000,
 			},
@@ -142,15 +141,15 @@ func TestParseSet(t *testing.T) {
 		ok  	github.com/cilium/cilium/pkg/labels	3.217s
 	`
 
-	want := parse.Set{
-		"IDPoolTestSuite.BenchmarkLeaseIDs": []*parse.Benchmark{
+	want := bench.Set{
+		"IDPoolTestSuite.BenchmarkLeaseIDs": []*bench.Benchmark{
 			{
 				Name:              "IDPoolTestSuite.BenchmarkLeaseIDs",
 				N:                 5000000,
 				NsPerOp:           520,
 				AllocedBytesPerOp: 80,
 				AllocsPerOp:       3,
-				Measured:          parse.NsPerOp | parse.AllocedBytesPerOp | parse.AllocsPerOp,
+				Measured:          bench.NsPerOp | bench.AllocedBytesPerOp | bench.AllocsPerOp,
 				Ord:               0,
 			},
 			{
@@ -159,18 +158,18 @@ func TestParseSet(t *testing.T) {
 				NsPerOp:           517,
 				AllocedBytesPerOp: 80,
 				AllocsPerOp:       3,
-				Measured:          parse.NsPerOp | parse.AllocedBytesPerOp | parse.AllocsPerOp,
+				Measured:          bench.NsPerOp | bench.AllocedBytesPerOp | bench.AllocsPerOp,
 				Ord:               3,
 			},
 		},
-		"IDPoolTestSuite.BenchmarkRemoveIDs": []*parse.Benchmark{
+		"IDPoolTestSuite.BenchmarkRemoveIDs": []*bench.Benchmark{
 			{
 				Name:              "IDPoolTestSuite.BenchmarkRemoveIDs",
 				N:                 5000000,
 				NsPerOp:           394,
 				AllocedBytesPerOp: 80,
 				AllocsPerOp:       3,
-				Measured:          parse.NsPerOp | parse.AllocedBytesPerOp | parse.AllocsPerOp,
+				Measured:          bench.NsPerOp | bench.AllocedBytesPerOp | bench.AllocsPerOp,
 				Ord:               1,
 			},
 			{
@@ -179,18 +178,18 @@ func TestParseSet(t *testing.T) {
 				NsPerOp:           400,
 				AllocedBytesPerOp: 80,
 				AllocsPerOp:       3,
-				Measured:          parse.NsPerOp | parse.AllocedBytesPerOp | parse.AllocsPerOp,
+				Measured:          bench.NsPerOp | bench.AllocedBytesPerOp | bench.AllocsPerOp,
 				Ord:               4,
 			},
 		},
-		"IDPoolTestSuite.BenchmarkUseAndRelease": []*parse.Benchmark{
+		"IDPoolTestSuite.BenchmarkUseAndRelease": []*bench.Benchmark{
 			{
 				Name:              "IDPoolTestSuite.BenchmarkUseAndRelease",
 				N:                 1000000,
 				NsPerOp:           4634,
 				AllocedBytesPerOp: 160,
 				AllocsPerOp:       6,
-				Measured:          parse.NsPerOp | parse.AllocedBytesPerOp | parse.AllocsPerOp,
+				Measured:          bench.NsPerOp | bench.AllocedBytesPerOp | bench.AllocsPerOp,
 				Ord:               2,
 			},
 			{
@@ -199,23 +198,23 @@ func TestParseSet(t *testing.T) {
 				NsPerOp:           2844,
 				AllocedBytesPerOp: 160,
 				AllocsPerOp:       6,
-				Measured:          parse.NsPerOp | parse.AllocedBytesPerOp | parse.AllocsPerOp,
+				Measured:          bench.NsPerOp | bench.AllocedBytesPerOp | bench.AllocsPerOp,
 				Ord:               5,
 			},
 		},
-		"BenchmarkParseLabel-8": []*parse.Benchmark{
+		"BenchmarkParseLabel-8": []*bench.Benchmark{
 			{
 				Name:     "BenchmarkParseLabel-8",
 				N:        2032945,
 				NsPerOp:  569,
-				Measured: parse.NsPerOp,
+				Measured: bench.NsPerOp,
 				Ord:      6,
 			},
 			{
 				Name:     "BenchmarkParseLabel-8",
 				N:        2042311,
 				NsPerOp:  557,
-				Measured: parse.NsPerOp,
+				Measured: bench.NsPerOp,
 				Ord:      7,
 			},
 		},

@@ -24,11 +24,32 @@ import (
 	"golang.org/x/tools/benchmark/parse"
 )
 
+// Flags used by BenchmarkStat.Measured to indicate
+// which measurements a Benchmark contains.
+const (
+	NsPerOp = 1 << iota
+	MBPerS
+	AllocedBytesPerOp
+	AllocsPerOp
+)
+
+// Benchmark is one run of a single benchmark. Based on x/tools/benchmark/parse.Benchmark.
+type Benchmark struct {
+	Name              string  // benchmark name
+	N                 int     // number of iterations
+	NsPerOp           float64 // nanoseconds per iteration
+	AllocedBytesPerOp uint64  // bytes allocated per iteration
+	AllocsPerOp       uint64  // allocs per iteration
+	MBPerS            float64 // MB processed per second
+	Measured          int     // which measurements were recorded
+	Ord               int     // ordinal position within a benchmark run
+}
+
 // parseGoCheckLine extracts a parse.Benchmark from a single line of benchmark output as emitted by
 // gopkg.in/check.v1 (https://labix.org/gocheck).
 // Based on
 // https://github.com/golang/tools/blob/a7c6fd066f6dcf64c13983e28e029ce7874760ff/benchmark/parse/parse.go#L41
-func parseGoCheckLine(line string) (*parse.Benchmark, error) {
+func parseGoCheckLine(line string) (*Benchmark, error) {
 	// line format:
 	// PASS: main_test.go:48: MySuite.BenchmarkSortSlice	   20000	     90444 ns/op	      64 B/op	       2 allocs/op
 	fields := strings.Fields(line)
@@ -47,7 +68,7 @@ func parseGoCheckLine(line string) (*parse.Benchmark, error) {
 	if err != nil {
 		return nil, err
 	}
-	b := &parse.Benchmark{Name: fields[2], N: n}
+	b := &Benchmark{Name: fields[2], N: n}
 
 	// Parse any remaining pairs of fields; we've parsed one pair already.
 	for i := 1; i < len(fields)/2; i++ {
@@ -81,23 +102,41 @@ func parseGoCheckLine(line string) (*parse.Benchmark, error) {
 	return b, nil
 }
 
-// ParseLine extracts a parse.Benchmark from a single line of testing.B or check.C benchmark output.
-func ParseLine(line string) (*parse.Benchmark, error) {
+// ParseLine extracts a Benchmark from a single line of testing.B or check.C benchmark output.
+func ParseLine(line string) (*Benchmark, error) {
 	line = strings.TrimSpace(line)
 	if strings.HasPrefix(line, "Benchmark") {
 		// Go standard library testing format
-		return parse.ParseLine(line)
+		b, err := parse.ParseLine(line)
+		if err != nil {
+			return nil, err
+		}
+		return &Benchmark{
+			Name:              b.Name,
+			N:                 b.N,
+			NsPerOp:           b.NsPerOp,
+			AllocedBytesPerOp: b.AllocedBytesPerOp,
+			AllocsPerOp:       b.AllocsPerOp,
+			MBPerS:            b.MBPerS,
+			Measured:          b.Measured,
+			Ord:               b.Ord,
+		}, err
 	} else if strings.HasPrefix(line, "PASS:") && strings.Contains(line, "Benchmark") {
 		return parseGoCheckLine(line)
 	}
 	return nil, fmt.Errorf("not a valid benchmark line")
 }
 
+// Set is a collection of benchmarks from one testing.B or gocheck.C benchmark run, keyed by name to
+// facilitate comparison.
+// Based on x/tools/benchmark/parse.Set.
+type Set map[string][]*Benchmark
+
 // ParseSet extracts a Set from testing.B or check.C benchmark output.
 // ParseSet preserves the order of benchmarks that have identical
 // names.
-func ParseSet(r io.Reader) (parse.Set, error) {
-	bb := make(parse.Set)
+func ParseSet(r io.Reader) (Set, error) {
+	bb := make(Set)
 	scan := bufio.NewScanner(r)
 	ord := 0
 	for scan.Scan() {
