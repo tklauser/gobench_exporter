@@ -1,4 +1,4 @@
-# Go benchmark exporter
+# Go benchmark exporter (work in progress)
 
 Prometheus exporter for Go benchmark results.
 
