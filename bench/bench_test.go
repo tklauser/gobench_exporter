@@ -49,6 +49,18 @@ func TestParseLine(t *testing.T) {
 			},
 		},
 		{
+			line: "BenchmarkSortSlice-8   	   16818	     68854 ns/op	  14.87 MB/s	      64 B/op	       2 allocs/op",
+			want: &bench.Benchmark{
+				Name:              "BenchmarkSortSlice-8",
+				N:                 16818,
+				NsPerOp:           68854.0,
+				MBPerS:            14.87,
+				AllocedBytesPerOp: 64,
+				AllocsPerOp:       2,
+				Measured:          bench.NsPerOp | bench.MBPerS | bench.AllocedBytesPerOp | bench.AllocsPerOp,
+			},
+		},
+		{
 			line: "PASS: main_test.go:49: MySuite.BenchmarkSortSlice	   20000	     89618 ns/op",
 			want: &bench.Benchmark{
 				Name:     "MySuite.BenchmarkSortSlice",
@@ -66,6 +78,18 @@ func TestParseLine(t *testing.T) {
 				AllocedBytesPerOp: 64,
 				AllocsPerOp:       2,
 				Measured:          bench.NsPerOp | bench.AllocedBytesPerOp | bench.AllocsPerOp,
+			},
+		},
+		{
+			line: "PASS: main_test.go:49: MySuite.BenchmarkSortSlice	   20000	     81393 ns/op	  12.58 MB/s	      64 B/op	       2 allocs/op",
+			want: &bench.Benchmark{
+				Name:              "MySuite.BenchmarkSortSlice",
+				N:                 20000,
+				NsPerOp:           81393,
+				MBPerS:            12.58,
+				AllocedBytesPerOp: 64,
+				AllocsPerOp:       2,
+				Measured:          bench.NsPerOp | bench.MBPerS | bench.AllocedBytesPerOp | bench.AllocsPerOp,
 			},
 		},
 		{
